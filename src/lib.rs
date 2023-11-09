@@ -32,7 +32,7 @@ pub fn hash(bytes: &[u8]) -> [u8; 20] {
     let mut state = [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0];
     for block in data.chunks(64) {
         unsafe {
-            state = sha1_block(state, block);
+            state = hash_block(state, block);
         }
     }
     let mut digest = [0; 20];
@@ -44,7 +44,7 @@ pub fn hash(bytes: &[u8]) -> [u8; 20] {
     return digest
 }
 
-unsafe fn sha1_block(state: [u32; 5], bytes: &[u8]) -> [u32; 5] {
+unsafe fn hash_block(state: [u32; 5], bytes: &[u8]) -> [u32; 5] {
     let wx4_00 = load::<00>(bytes);
     let wx4_01 = load::<16>(bytes);
     let wx4_02 = load::<32>(bytes);
@@ -172,8 +172,8 @@ unsafe fn load<const OFFSET: usize>(bytes: &[u8]) -> __m128i {
     )
 }
 
-#[inline]
 /// W[i] = (W[i-3] ^ W[i-8] ^ W[i-14] ^ W[i-16]) rol 1 where i >= 16
+#[inline]
 unsafe fn schedule_v1(minus_4: __m128i, minus_8: __m128i, minus_12: __m128i, minus_16: __m128i) -> __m128i {
     let minus_3 = _mm_srli_si128::<4>(minus_4);
     let minus_14 = connection_of(minus_16, minus_12);
@@ -184,16 +184,17 @@ unsafe fn schedule_v1(minus_4: __m128i, minus_8: __m128i, minus_12: __m128i, min
     return _mm_xor_si128(wx3, w_3)
 }
 
-#[inline]
+
 /// W[i] = (W[i-6] ^ W[i-16] ^ W[i-28] ^ W[i-32]) rol 2 where i >= 32
+#[inline]
 unsafe fn schedule_v2(minus_4: __m128i, minus_8: __m128i, minus_16: __m128i, minus_28: __m128i, minus_32: __m128i) -> __m128i {
     let minus_6 = connection_of(minus_8, minus_4);
     let wx4 = _mm_xor_si128(_mm_xor_si128(minus_6, minus_16), _mm_xor_si128(minus_28, minus_32));
     return _mm_xor_si128(_mm_slli_epi32::<2>(wx4), _mm_srli_epi32::<30>(wx4))
 }
 
-#[inline]
 /// W[i] = (W[i-12] ^ W[i-32] ^ W[i-56] ^ W[i-64]) rol 4 where i >= 64
+#[inline]
 unsafe fn schedule_v3(minus_12: __m128i, minus_32: __m128i, minus_56: __m128i, minus_64: __m128i) -> __m128i {
     let wx4 = _mm_xor_si128(_mm_xor_si128(minus_12, minus_32), _mm_xor_si128(minus_56 ,minus_64));
     return _mm_xor_si128(_mm_slli_epi32::<4>(wx4), _mm_srli_epi32::<28>(wx4))
