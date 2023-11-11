@@ -49,6 +49,7 @@ pub fn hash(bytes: &[u8]) -> [u8; 20] {
     return digest
 }
 
+#[inline]
 unsafe fn hash_block(state: [u32; 5], bytes: &[u8]) -> [u32; 5] {
     let [wk1x4x5, wk2x4x5, wk3x4x5, wk4x4x5] = w_and_k(bytes);
     let mut a = state[0];

@@ -49,7 +49,7 @@ pub unsafe fn w_and_k(bytes: &[u8]) -> [[__m128i; 5]; 4] {
 /// W[i] = M[i] where i < 16
 #[inline]
 #[cfg(target_feature = "ssse3")]
-pub unsafe fn message_schedule_v1<const OFFSET: usize>(bytes: &[u8]) -> __m128i {
+unsafe fn message_schedule_v1<const OFFSET: usize>(bytes: &[u8]) -> __m128i {
     let shuffle_mask = _mm_set_epi8(12, 13, 14, 15, 8, 9, 10, 11, 4, 5, 6, 7, 0, 1, 2, 3);
     let data16 = _mm_loadu_si128(bytes.as_ptr().add(OFFSET).cast());
     return _mm_shuffle_epi8(data16, shuffle_mask)
