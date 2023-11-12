@@ -57,10 +57,10 @@ unsafe fn message_schedule_v1(bytes: &[u8]) -> [uint32x4_t; 4] {
 
 /// W[i] = (W[i-3] ^ W[i-8] ^ W[i-14] ^ W[i-16]) rol 1 where i >= 16
 #[inline]
-unsafe fn message_schedule_v2(minus_4: uint32x4_t, minus_8: uint32x4_t, minus_12: uint32x4_t, minus_16: uint32x4_t) -> uint32x4_t {
-    let minus_3 = vextq_u32::<1>(minus_4, vdupq_n_u32(0));
-    let minus_14 = vextq_u32::<2>(minus_16, minus_12);
-    let wx3 = veorq_u32(veorq_u32(minus_3, minus_8), veorq_u32(minus_14 ,minus_16));
+unsafe fn message_schedule_v2(minus4: uint32x4_t, minus8: uint32x4_t, minus12: uint32x4_t, minus16: uint32x4_t) -> uint32x4_t {
+    let minus3 = vextq_u32::<1>(minus4, vdupq_n_u32(0));
+    let minus14 = vextq_u32::<2>(minus16, minus12);
+    let wx3 = veorq_u32(veorq_u32(minus3, minus8), veorq_u32(minus14 ,minus16));
     let wx3 = veorq_u32(vshlq_n_u32::<1>(wx3), vshrq_n_u32::<31>(wx3));
     let w_3 = vextq_u32::<1>(vdupq_n_u32(0), wx3);
     let w_3 = veorq_u32(vshlq_n_u32::<1>(w_3), vshrq_n_u32::<31>(w_3));
@@ -69,15 +69,15 @@ unsafe fn message_schedule_v2(minus_4: uint32x4_t, minus_8: uint32x4_t, minus_12
 
 /// W[i] = (W[i-6] ^ W[i-16] ^ W[i-28] ^ W[i-32]) rol 2 where i >= 32
 #[inline]
-unsafe fn message_schedule_v3(minus_4: uint32x4_t, minus_8: uint32x4_t, minus_16: uint32x4_t, minus_28: uint32x4_t, minus_32: uint32x4_t) -> uint32x4_t {
-    let minus_6 = vextq_u32::<2>(minus_8, minus_4);
-    let wx4 = veorq_u32(veorq_u32(minus_6, minus_16), veorq_u32(minus_28, minus_32));
+unsafe fn message_schedule_v3(minus4: uint32x4_t, minus8: uint32x4_t, minus16: uint32x4_t, minus28: uint32x4_t, minus32: uint32x4_t) -> uint32x4_t {
+    let minus6 = vextq_u32::<2>(minus8, minus4);
+    let wx4 = veorq_u32(veorq_u32(minus6, minus16), veorq_u32(minus28, minus32));
     return veorq_u32(vshlq_n_u32::<2>(wx4), vshrq_n_u32::<30>(wx4))
 }
 
 /// W[i] = (W[i-12] ^ W[i-32] ^ W[i-56] ^ W[i-64]) rol 4 where i >= 64
 #[inline]
-unsafe fn message_schedule_v4(minus_12: uint32x4_t, minus_32: uint32x4_t, minus_56: uint32x4_t, minus_64: uint32x4_t) -> uint32x4_t {
-    let wx4 = veorq_u32(veorq_u32(minus_12, minus_32), veorq_u32(minus_56 ,minus_64));
+unsafe fn message_schedule_v4(minus12: uint32x4_t, minus32: uint32x4_t, minus56: uint32x4_t, minus64: uint32x4_t) -> uint32x4_t {
+    let wx4 = veorq_u32(veorq_u32(minus12, minus32), veorq_u32(minus56 ,minus64));
     return veorq_u32(vshlq_n_u32::<4>(wx4), vshrq_n_u32::<28>(wx4))
 }

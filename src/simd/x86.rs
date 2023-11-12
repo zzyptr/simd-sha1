@@ -69,10 +69,10 @@ unsafe fn message_schedule_v1<const OFFSET: usize>(bytes: &[u8]) -> __m128i {
 
 /// W[i] = (W[i-3] ^ W[i-8] ^ W[i-14] ^ W[i-16]) rol 1 where i >= 16
 #[inline]
-unsafe fn message_schedule_v2(minus_4: __m128i, minus_8: __m128i, minus_12: __m128i, minus_16: __m128i) -> __m128i {
-    let minus_3 = _mm_srli_si128::<4>(minus_4);
-    let minus_14 = connection_of(minus_16, minus_12);
-    let wx3 = _mm_xor_si128(_mm_xor_si128(minus_3, minus_8), _mm_xor_si128(minus_14 ,minus_16));
+unsafe fn message_schedule_v2(minus4: __m128i, minus8: __m128i, minus12: __m128i, minus16: __m128i) -> __m128i {
+    let minus3 = _mm_srli_si128::<4>(minus4);
+    let minus14 = connection_of(minus16, minus12);
+    let wx3 = _mm_xor_si128(_mm_xor_si128(minus3, minus8), _mm_xor_si128(minus14 ,minus16));
     let wx3 = _mm_xor_si128(_mm_slli_epi32::<1>(wx3), _mm_srli_epi32::<31>(wx3));
     let w_3 = _mm_slli_si128::<12>(wx3);
     let w_3 = _mm_xor_si128(_mm_slli_epi32::<1>(w_3), _mm_srli_epi32::<31>(w_3));
@@ -81,16 +81,16 @@ unsafe fn message_schedule_v2(minus_4: __m128i, minus_8: __m128i, minus_12: __m1
 
 /// W[i] = (W[i-6] ^ W[i-16] ^ W[i-28] ^ W[i-32]) rol 2 where i >= 32
 #[inline]
-unsafe fn message_schedule_v3(minus_4: __m128i, minus_8: __m128i, minus_16: __m128i, minus_28: __m128i, minus_32: __m128i) -> __m128i {
-    let minus_6 = connection_of(minus_8, minus_4);
-    let wx4 = _mm_xor_si128(_mm_xor_si128(minus_6, minus_16), _mm_xor_si128(minus_28, minus_32));
+unsafe fn message_schedule_v3(minus4: __m128i, minus8: __m128i, minus16: __m128i, minus28: __m128i, minus32: __m128i) -> __m128i {
+    let minus6 = connection_of(minus8, minus4);
+    let wx4 = _mm_xor_si128(_mm_xor_si128(minus6, minus16), _mm_xor_si128(minus28, minus32));
     return _mm_xor_si128(_mm_slli_epi32::<2>(wx4), _mm_srli_epi32::<30>(wx4))
 }
 
 /// W[i] = (W[i-12] ^ W[i-32] ^ W[i-56] ^ W[i-64]) rol 4 where i >= 64
 #[inline]
-unsafe fn message_schedule_v4(minus_12: __m128i, minus_32: __m128i, minus_56: __m128i, minus_64: __m128i) -> __m128i {
-    let wx4 = _mm_xor_si128(_mm_xor_si128(minus_12, minus_32), _mm_xor_si128(minus_56 ,minus_64));
+unsafe fn message_schedule_v4(minus12: __m128i, minus32: __m128i, minus56: __m128i, minus64: __m128i) -> __m128i {
+    let wx4 = _mm_xor_si128(_mm_xor_si128(minus12, minus32), _mm_xor_si128(minus56 ,minus64));
     return _mm_xor_si128(_mm_slli_epi32::<4>(wx4), _mm_srli_epi32::<28>(wx4))
 }
 
