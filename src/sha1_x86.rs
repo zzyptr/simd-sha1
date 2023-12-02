@@ -29,21 +29,7 @@ pub fn hash(bytes: &[u8]) -> [u8; 20] {
         for block in message.0.chunks(64) {
             hash_value = hash_block(hash_value, block);
         }
-
-        let [h0_3, h4] = hash_value;
-        let mut buffer = Align16([0u32; 4]);
-        _mm_store_si128(buffer.0.as_mut_ptr().cast(), h0_3);
-        let [h3, h2, h1, h0] = buffer.0;
-        _mm_store_si128(buffer.0.as_mut_ptr().cast(), h4);
-        let [_, _, _, h4] = buffer.0;
-        
-        let mut digest = [0; 20];
-        digest[00..04].copy_from_slice(&h0.to_be_bytes());
-        digest[04..08].copy_from_slice(&h1.to_be_bytes());
-        digest[08..12].copy_from_slice(&h2.to_be_bytes());
-        digest[12..16].copy_from_slice(&h3.to_be_bytes());
-        digest[16..20].copy_from_slice(&h4.to_be_bytes());
-        return digest
+        return finalize(hash_value);
     }
 }
 
@@ -182,4 +168,37 @@ unsafe fn compute<const FUNC: i32>(abcdew: [__m128i; 2], wx4: __m128i) -> [__m12
     let ew = _mm_sha1nexte_epu32(abcd, wx4);
     let abcd = tmp;
     return [abcd, ew]
+}
+
+#[inline]
+#[cfg(target_feature = "ssse3")]
+unsafe fn finalize(hash_value: [__m128i; 2]) -> [u8; 20] {
+    let mask0 = _mm_set_epi64x(0x0001020304050607, 0x08090A0B0C0D0E0F);
+    let mask1 = _mm_set_epi64x(0x0C0D0E0F00000000, 0);
+    let [h0_3, h4] = hash_value;
+    let h0_3 = _mm_shuffle_epi8(h0_3, mask0);
+    let h4 = _mm_shuffle_epi8(h4, mask1);
+    let mut digest = Align16([0; 20]);
+    _mm_storeu_si128(digest.0.as_mut_ptr().add(4).cast(), h4);
+    _mm_store_si128(digest.0.as_mut_ptr().cast(), h0_3);
+    return digest.0
+}
+
+#[inline]
+#[cfg(not(target_feature = "ssse3"))]
+unsafe fn finalize(hash_value: [__m128i; 2]) -> [u8; 20] {
+    let mut buffer = Align16([0u32; 4]);
+    let [h0_3, h4] = hash_value;
+    _mm_store_si128(buffer.0.as_mut_ptr().cast(), h0_3);
+    let [h3, h2, h1, h0] = buffer.0;
+    _mm_store_si128(buffer.0.as_mut_ptr().cast(), h4);
+    let [_, _, _, h4] = buffer.0;
+    
+    let mut digest = [0; 20];
+    digest[00..04].copy_from_slice(&h0.to_be_bytes());
+    digest[04..08].copy_from_slice(&h1.to_be_bytes());
+    digest[08..12].copy_from_slice(&h2.to_be_bytes());
+    digest[12..16].copy_from_slice(&h3.to_be_bytes());
+    digest[16..20].copy_from_slice(&h4.to_be_bytes());
+    return digest
 }
